@@ -1,7 +1,7 @@
 defmodule LibraryServerTest do
   use ExUnit.Case
 
-  alias LiveSync.LibraryServer
+  alias Jinx.LibraryServer
 
   test "creates a document" do
     {:ok, _} = LibraryServer.start_link([])

@@ -2,7 +2,7 @@ defmodule LibraryTest do
   use ExUnit.Case
 
   alias Yex.XmlElementPrelim
-  alias LiveSync.Library
+  alias Jinx.Library
   alias Yex.{Doc, Text, Array, Map, XmlFragment, XmlTextPrelim}
 
   setup do

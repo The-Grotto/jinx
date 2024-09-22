@@ -1,4 +1,4 @@
-defmodule LiveSync.Application do
+defmodule Jinx.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -8,13 +8,13 @@ defmodule LiveSync.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: LiveSync.Worker.start_link(arg)
-      # {LiveSync.Worker, arg}
+      # Starts a worker by calling: Jinx.Worker.start_link(arg)
+      # {Jinx.Worker, arg}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: LiveSync.Supervisor]
+    opts = [strategy: :one_for_one, name: Jinx.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

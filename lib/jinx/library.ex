@@ -1,4 +1,4 @@
-defmodule LiveSync.Library do
+defmodule Jinx.Library do
   defstruct documents: %{}
 
   def create_doc(%__MODULE__{} = library, doc_id) do
