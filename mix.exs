@@ -1,9 +1,9 @@
-defmodule LiveSync.MixProject do
+defmodule Jinx.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :live_sync,
+      app: :jinx,
       version: "0.1.0",
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
@@ -15,7 +15,7 @@ defmodule LiveSync.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {LiveSync.Application, []}
+      mod: {Jinx.Application, []}
     ]
   end
 

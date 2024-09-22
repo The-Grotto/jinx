@@ -1,6 +1,6 @@
-defmodule LiveSync do
+defmodule Jinx do
   @moduledoc """
-  Documentation for `LiveSync`.
+  Documentation for `Jinx`.
   """
 
   @doc """
@@ -8,7 +8,7 @@ defmodule LiveSync do
 
   ## Examples
 
-      iex> LiveSync.hello()
+      iex> Jinx.hello()
       :world
 
   """

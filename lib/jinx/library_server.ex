@@ -1,7 +1,7 @@
-defmodule LiveSync.LibraryServer do
+defmodule Jinx.LibraryServer do
   use GenServer
 
-  alias LiveSync.Library
+  alias Jinx.Library
 
   def init(_) do
     {:ok, %Library{}}
