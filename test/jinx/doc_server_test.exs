@@ -2,7 +2,7 @@ defmodule Jinx.DocServerTest do
   use ExUnit.Case
 
   test "creates a doc" do
-    {:ok, pid} = Jinx.DocServer.open_doc("123")
+    {:ok, pid} = Jinx.DocServer.open_doc("123", self())
 
     client_doc = Yex.Doc.new()
     client_text = Yex.Doc.get_text(client_doc, "test_text")

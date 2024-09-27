@@ -1,9 +1,17 @@
 defmodule Jinx.Doc do
   @enforce_keys [:id, :ydoc]
-  defstruct [:id, :ydoc, connected_clients: []]
+  defstruct [:id, :ydoc, connected_clients: MapSet.new()]
 
   def new(doc_id) do
     %Jinx.Doc{id: doc_id, ydoc: Yex.Doc.new()}
+  end
+
+  def add_client(%Jinx.Doc{} = doc, pid) do
+    %Jinx.Doc{doc | connected_clients: MapSet.put(doc.connected_clients, pid)}
+  end
+
+  def connected_clients(%Jinx.Doc{} = doc) do
+    MapSet.to_list(doc.connected_clients)
   end
 
   def apply_update(%Jinx.Doc{ydoc: ydoc} = doc, update) do
