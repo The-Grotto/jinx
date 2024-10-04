@@ -1,5 +1,5 @@
 defmodule Jinx.DocServer do
-  use GenServer
+  use GenServer, restart: :transient
 
   @moduledoc """
   Documentation for `Jinx.DocServer`.
@@ -8,23 +8,18 @@ defmodule Jinx.DocServer do
   @doc """
   """
 
-  def start_link(opts) do
-    doc_id = Access.get(opts, :doc_id)
-    client_pid = Access.get(opts, :client_pid)
+  def start_link(doc_id) do
+    GenServer.start_link(__MODULE__, doc_id, name: via_tuple(doc_id))
+  end
 
-    GenServer.start_link(__MODULE__,
-      name: {:global, doc_id},
-      doc_id: doc_id,
-      client_pid: client_pid
-    )
+  def via_tuple(doc_id) do
+    Jinx.DocRegistry.via_tuple({__MODULE__, doc_id})
   end
 
   ## May need to defer to init_continue depending on the initialization time
   @impl GenServer
-  def init(name: _name, doc_id: doc_id, client_pid: client_pid) do
-    doc =
-      Jinx.Doc.new(doc_id)
-      |> Jinx.Doc.add_client(client_pid)
+  def init(doc_id) do
+    doc = Jinx.Doc.new(doc_id)
 
     {:ok, doc}
   end
@@ -36,8 +31,18 @@ defmodule Jinx.DocServer do
   end
 
   @impl GenServer
-  def handle_cast({:add_client, pid}, %Jinx.Doc{} = state) do
-    {:noreply, Jinx.Doc.add_client(state, pid)}
+  def handle_cast({:add_client, client_pid}, %Jinx.Doc{} = state) do
+    {:noreply, Jinx.Doc.add_client(state, client_pid)}
+  end
+
+  @impl GenServer
+  def handle_call({:remove_client, client_pid}, _from, %Jinx.Doc{} = state) do
+    state = Jinx.Doc.remove_client(state, client_pid)
+
+    case Jinx.Doc.has_connected_clients?(state) do
+      true -> {:reply, :connected_clients, state}
+      false -> {:reply, :no_clients, state}
+    end
   end
 
   @impl GenServer
@@ -53,26 +58,24 @@ defmodule Jinx.DocServer do
     {:reply, Jinx.Doc.connected_clients(state), state}
   end
 
-  def open_doc(doc_id, client_pid) do
-    case Jinx.DocServer.start_link(doc_id: doc_id, client_pid: client_pid) do
-      {:ok, pid} -> {:ok, %Jinx.DocHandle{doc_id: doc_id, pid: pid}}
-      _ -> {:error, "Could not open document"}
-    end
+  def apply_update(doc_pid, update) do
+    GenServer.cast(doc_pid, {:apply_update, update})
   end
 
-  def apply_update(doc_handle, update) do
-    GenServer.cast(doc_handle.pid, {:apply_update, update})
+  def get_doc_value(doc_pid, element_type, element_name) do
+    GenServer.call(doc_pid, {:get_doc_value, element_type, element_name})
   end
 
-  def get_doc_value(doc_handle, element_type, element_name) do
-    GenServer.call(doc_handle.pid, {:get_doc_value, element_type, element_name})
+  def add_client(doc_pid, client_pid) do
+    GenServer.cast(doc_pid, {:add_client, client_pid})
+    doc_pid
   end
 
-  def add_client(doc_handle, pid) do
-    GenServer.cast(doc_handle.pid, {:add_client, pid})
+  def remove_client(doc_pid, client_pid) do
+    GenServer.call(doc_pid, {:remove_client, client_pid})
   end
 
-  def get_connected_clients(doc_handle) do
-    GenServer.call(doc_handle.pid, :get_connected_clients)
+  def get_connected_clients(doc_pid) do
+    GenServer.call(doc_pid, :get_connected_clients)
   end
 end
