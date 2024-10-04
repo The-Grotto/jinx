@@ -10,7 +10,7 @@ defmodule Jinx.DocRegistry do
     {:ok, state}
   end
 
-  ## Once the document storage is implemented, can implement a spcific function for creating a new document.
+  ## Once the document storage is implemented, can implement a specific function for creating a new document.
   @impl GenServer
   def handle_call({:open_doc, doc_id, alt_client_pid}, client_pid, state) do
     # Use the alternate client pid if provided, otherwise use the defult client pid of the caller
