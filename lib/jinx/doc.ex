@@ -10,8 +10,16 @@ defmodule Jinx.Doc do
     %Jinx.Doc{doc | connected_clients: MapSet.put(doc.connected_clients, pid)}
   end
 
+  def remove_client(%Jinx.Doc{} = doc, pid) do
+    %Jinx.Doc{doc | connected_clients: MapSet.delete(doc.connected_clients, pid)}
+  end
+
   def connected_clients(%Jinx.Doc{} = doc) do
     MapSet.to_list(doc.connected_clients)
+  end
+
+  def has_connected_clients?(%Jinx.Doc{} = doc) do
+    MapSet.size(doc.connected_clients) > 0
   end
 
   def apply_update(%Jinx.Doc{ydoc: ydoc} = doc, update) do

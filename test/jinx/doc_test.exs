@@ -16,4 +16,15 @@ defmodule Jinx.DocTest do
     assert Jinx.Doc.get_doc_value(doc, :text, "test_text") ==
              {:ok, "test text input data"}
   end
+
+  test "maintains connected clients" do
+    doc =
+      Jinx.Doc.new("111")
+      |> Jinx.Doc.add_client(:first_pid)
+      |> Jinx.Doc.add_client(:second_pid)
+      |> Jinx.Doc.add_client(:third_pid)
+      |> Jinx.Doc.remove_client(:second_pid)
+
+    assert Jinx.Doc.connected_clients(doc) == [:first_pid, :third_pid]
+  end
 end
