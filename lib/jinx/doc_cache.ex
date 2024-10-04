@@ -23,12 +23,14 @@ defmodule Jinx.DocCache do
     Jinx.DocServer.add_client(pid, client_pid)
   end
 
-  def close_doc(doc_pid, client_pid) do
+  def close_doc(doc_pid, client_pid \\ nil) do
+    client_pid = client_pid || self()
+
     case Jinx.DocServer.remove_client(doc_pid, client_pid) do
-      {:ok, true} ->
+      :connected_clients ->
         :ok
 
-      {:ok, false} ->
+      :no_clients ->
         DynamicSupervisor.terminate_child(__MODULE__, doc_pid)
         :ok
     end
