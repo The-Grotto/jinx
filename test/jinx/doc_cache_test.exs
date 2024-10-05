@@ -73,4 +73,29 @@ defmodule Jinx.DocRegistryTest do
   
     assert doc_pid_one != doc_pid_four
   end
+
+  test "broadcasts doc updates on pubsub" do
+    doc_id = "broadcast"
+
+    doc_pid = Jinx.DocCache.open_doc(doc_id, :client_one)
+    Jinx.DocCache.open_doc(doc_id, :client_two)
+
+    Jinx.DocCache.subscribe(doc_id)
+
+    client_doc = Yex.Doc.new()
+    client_content = Yex.Doc.get_text(client_doc, "content")
+
+    Yex.Text.insert(client_content, 0, "test broadcast content")
+
+    {:ok, update} = Yex.encode_state_as_update(client_doc)
+    :ok = Jinx.DocServer.apply_update(doc_pid, update)
+
+    assert Jinx.DocServer.get_doc_value(doc_pid, :text, "content") == {:ok, "test broadcast content"}
+
+    assert_receive {^doc_id, ^update}
+
+    client_text = Jinx.Doc.new(doc_id) |> Jinx.Doc.apply_update(update) |> Jinx.Doc.get_doc_value(:text, "content")
+
+    assert client_text == {:ok, "test broadcast content"}
+  end
 end

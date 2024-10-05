@@ -10,8 +10,9 @@ defmodule Jinx.Application do
     children = [
       # Starts a worker by calling: Jinx.Worker.start_link(arg)
       # {Jinx.Worker, arg}
-      {Jinx.DocRegistry, []},
-      {Jinx.DocCache, []}
+      Jinx.DocRegistry,
+      Jinx.DocCache,
+      {Phoenix.PubSub, name: Jinx.PubSub}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

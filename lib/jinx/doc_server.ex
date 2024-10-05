@@ -27,6 +27,14 @@ defmodule Jinx.DocServer do
   @impl GenServer
   def handle_cast({:apply_update, update}, %Jinx.Doc{} = state) do
     Jinx.Doc.apply_update(state, update)
+
+    Phoenix.PubSub.broadcast_from(
+      Jinx.PubSub,
+      self(),
+      "jinx.update:#{state.id}",
+      {state.id, update}
+    )
+
     {:noreply, state}
   end
 
