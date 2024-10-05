@@ -47,30 +47,30 @@ defmodule Jinx.DocRegistryTest do
     doc_pid_one = Jinx.DocCache.open_doc("444", :c.pid(0, 252, 0))
     doc_pid_two = Jinx.DocCache.open_doc("444", :c.pid(0, 253, 0))
     doc_pid_three = Jinx.DocCache.open_doc("444", :c.pid(0, 254, 0))
-  
+
     connected_clients = Jinx.DocServer.get_connected_clients(doc_pid_one)
-  
+
     assert doc_pid_one == doc_pid_two
     assert doc_pid_two == doc_pid_three
     assert connected_clients == [:c.pid(0, 252, 0), :c.pid(0, 253, 0), :c.pid(0, 254, 0)]
-  
+
     ## This should remove the connected client but not shutdown the server
     Jinx.DocCache.close_doc(doc_pid_one, :c.pid(0, 252, 0))
     connected_clients = Jinx.DocServer.get_connected_clients(doc_pid_two)
-  
+
     assert connected_clients == [:c.pid(0, 253, 0), :c.pid(0, 254, 0)]
-  
+
     ## This should remove the last connected client and shutdown the server
     Jinx.DocCache.close_doc(doc_pid_two, :c.pid(0, 253, 0))
     connected_clients = Jinx.DocServer.get_connected_clients(doc_pid_three)
-  
+
     assert connected_clients == [:c.pid(0, 254, 0)]
-  
+
     Jinx.DocCache.close_doc(doc_pid_three, :c.pid(0, 254, 0))
     catch_exit(Jinx.DocServer.get_connected_clients(doc_pid_three))
-  
+
     doc_pid_four = Jinx.DocCache.open_doc("123", :c.pid(0, 254, 0))
-  
+
     assert doc_pid_one != doc_pid_four
   end
 
@@ -80,7 +80,7 @@ defmodule Jinx.DocRegistryTest do
     doc_pid = Jinx.DocCache.open_doc(doc_id, :client_one)
     Jinx.DocCache.open_doc(doc_id, :client_two)
 
-    Jinx.DocCache.subscribe(doc_id)
+    Jinx.DocServer.subscribe(doc_id)
 
     client_doc = Yex.Doc.new()
     client_content = Yex.Doc.get_text(client_doc, "content")
@@ -90,12 +90,17 @@ defmodule Jinx.DocRegistryTest do
     {:ok, update} = Yex.encode_state_as_update(client_doc)
     :ok = Jinx.DocServer.apply_update(doc_pid, update)
 
-    assert Jinx.DocServer.get_doc_value(doc_pid, :text, "content") == {:ok, "test broadcast content"}
+    assert Jinx.DocServer.get_doc_value(doc_pid, :text, "content") ==
+             {:ok, "test broadcast content"}
 
     assert_receive {^doc_id, ^update}
 
-    client_text = Jinx.Doc.new(doc_id) |> Jinx.Doc.apply_update(update) |> Jinx.Doc.get_doc_value(:text, "content")
+    client_text =
+      Jinx.Doc.new(doc_id)
+      |> Jinx.Doc.apply_update(update)
+      |> Jinx.Doc.get_doc_value(:text, "content")
 
     assert client_text == {:ok, "test broadcast content"}
   end
 end
+

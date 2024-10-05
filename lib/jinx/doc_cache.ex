@@ -23,10 +23,6 @@ defmodule Jinx.DocCache do
     Jinx.DocServer.add_client(pid, client_pid)
   end
 
-  def subscribe(doc_id) do
-    Phoenix.PubSub.subscribe(Jinx.PubSub, "jinx.update:#{doc_id}")
-  end
-
   def close_doc(doc_pid, client_pid \\ nil) do
     client_pid = client_pid || self()
 

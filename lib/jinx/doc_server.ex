@@ -66,6 +66,10 @@ defmodule Jinx.DocServer do
     {:reply, Jinx.Doc.connected_clients(state), state}
   end
 
+  def subscribe(doc_id) do
+    Phoenix.PubSub.subscribe(Jinx.PubSub, "jinx.update:#{doc_id}")
+  end
+
   def apply_update(doc_pid, update) do
     GenServer.cast(doc_pid, {:apply_update, update})
   end
