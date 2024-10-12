@@ -45,7 +45,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
-      - run: mix do deps.get, compile --warnings-as-errors, ecto.reset
+      - run: mix do deps.get, compile --warnings-as-errors
       - run: mix coveralls.json
 
       - name: Check Code Coverage
