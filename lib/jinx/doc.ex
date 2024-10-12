@@ -33,7 +33,7 @@ defmodule Jinx.Doc do
       :text -> {:ok, get_text_value(doc, element_name)}
       :xml_fragment -> {:ok, get_xml_fragment_value(doc, element_name)}
       :map -> {:ok, get_map_value(doc, element_name)}
-      _ -> {:error, "Unknown element type"}
+      _type -> {:error, "Unknown element type"}
     end
   end
 
