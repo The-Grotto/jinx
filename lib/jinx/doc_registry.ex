@@ -1,5 +1,6 @@
 defmodule Jinx.DocRegistry do
-  def start_link() do
+  @moduledoc false
+  def start_link do
     Registry.start_link(
       name: __MODULE__,
       keys: :unique

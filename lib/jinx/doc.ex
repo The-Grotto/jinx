@@ -1,4 +1,5 @@
 defmodule Jinx.Doc do
+  @moduledoc false
   @enforce_keys [:id, :ydoc]
   defstruct [:id, :ydoc, connected_clients: MapSet.new()]
 

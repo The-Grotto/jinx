@@ -1,9 +1,9 @@
 defmodule Jinx.DocServer do
-  use GenServer, restart: :transient
-
   @moduledoc """
   Documentation for `Jinx.DocServer`.
   """
+
+  use GenServer, restart: :transient
 
   @doc """
   """
@@ -47,9 +47,10 @@ defmodule Jinx.DocServer do
   def handle_call({:remove_client, client_pid}, _from, %Jinx.Doc{} = state) do
     state = Jinx.Doc.remove_client(state, client_pid)
 
-    case Jinx.Doc.has_connected_clients?(state) do
-      true -> {:reply, :connected_clients, state}
-      false -> {:reply, :no_clients, state}
+    if Jinx.Doc.has_connected_clients?(state) do
+      {:reply, :connected_clients, state}
+    else
+      {:reply, :no_clients, state}
     end
   end
 
