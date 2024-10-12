@@ -34,6 +34,7 @@ defmodule Jinx.MixProject do
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
       {:phoenix_pubsub, "~> 2.1"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.0", only: [:dev, :test], runtime: false},
       {:uxid, "~> 0.2.3"},
       {:y_ex, "~> 0.6.2"}
     ]

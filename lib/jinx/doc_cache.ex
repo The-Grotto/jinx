@@ -1,5 +1,6 @@
 defmodule Jinx.DocCache do
-  def start_link() do
+  @moduledoc false
+  def start_link do
     DynamicSupervisor.start_link(name: __MODULE__, strategy: :one_for_one)
   end
 

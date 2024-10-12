@@ -19,7 +19,8 @@ defmodule Jinx.DocTest do
 
   test "maintains connected clients" do
     doc =
-      Jinx.Doc.new("111")
+      "111"
+      |> Jinx.Doc.new()
       |> Jinx.Doc.add_client(:first_pid)
       |> Jinx.Doc.add_client(:second_pid)
       |> Jinx.Doc.add_client(:third_pid)

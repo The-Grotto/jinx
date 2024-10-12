@@ -96,7 +96,8 @@ defmodule Jinx.DocRegistryTest do
     assert_receive {^doc_id, ^update}
 
     client_text =
-      Jinx.Doc.new(doc_id)
+      doc_id
+      |> Jinx.Doc.new()
       |> Jinx.Doc.apply_update(update)
       |> Jinx.Doc.get_doc_value(:text, "content")
 
