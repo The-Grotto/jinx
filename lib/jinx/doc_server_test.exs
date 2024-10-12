@@ -1,5 +1,5 @@
 defmodule Jinx.DocServerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   test "creates a doc" do
     {:ok, pid} = Jinx.DocServer.start_link("111")

@@ -1,5 +1,5 @@
 defmodule Jinx.DocTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   test "creates a doc" do
     %Jinx.Doc{} = doc = Jinx.Doc.new("111")

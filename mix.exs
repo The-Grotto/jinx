@@ -8,6 +8,7 @@ defmodule Jinx.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      test_paths: ["lib"],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,

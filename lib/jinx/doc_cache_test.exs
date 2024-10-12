@@ -1,11 +1,5 @@
 defmodule Jinx.DocRegistryTest do
-  use ExUnit.Case
-
-  setup %{} do
-    Jinx.DocRegistry.start_link()
-    Jinx.DocCache.start_link()
-    %{}
-  end
+  use ExUnit.Case, async: true
 
   test "create a new doc" do
     doc_pid = Jinx.DocCache.open_doc("123")
