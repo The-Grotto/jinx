@@ -3,7 +3,7 @@ defmodule Jinx.DocCache do
     DynamicSupervisor.start_link(name: __MODULE__, strategy: :one_for_one)
   end
 
-  def child_spec(_) do
+  def child_spec(_opts) do
     %{
       id: __MODULE__,
       start: {__MODULE__, :start_link, []},

@@ -10,7 +10,7 @@ defmodule Jinx.DocRegistry do
     {:via, Registry, {__MODULE__, doc_id}}
   end
 
-  def child_spec(_) do
+  def child_spec(_opts) do
     Supervisor.child_spec(Registry, id: __MODULE__, start: {__MODULE__, :start_link, []})
   end
 end

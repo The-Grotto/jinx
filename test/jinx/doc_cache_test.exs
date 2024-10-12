@@ -103,4 +103,3 @@ defmodule Jinx.DocRegistryTest do
     assert client_text == {:ok, "test broadcast content"}
   end
 end
-
