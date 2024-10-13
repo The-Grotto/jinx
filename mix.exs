@@ -8,6 +8,7 @@ defmodule Jinx.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      test_paths: ["lib"],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -20,8 +21,7 @@ defmodule Jinx.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :observer, :wx, :runtime_tools],
-      mod: {Jinx.Application, []}
+      extra_applications: [:logger, :observer, :wx, :runtime_tools]
     ]
   end
 

@@ -3,16 +3,27 @@ defmodule Jinx do
   Documentation for `Jinx`.
   """
 
-  @doc """
-  Hello world.
+  use Supervisor
 
-  ## Examples
+  def start_link(opts) do
+    Supervisor.start_link(__MODULE__, opts)
+  end
 
-      iex> Jinx.hello()
-      :world
+  def child_spec(opts) do
+    %{
+      id: Jinx,
+      start: {__MODULE__, :start_link, [opts]}
+    }
+  end
 
-  """
-  def hello do
-    :world
+  @impl true
+  def init(_opts) do
+    children = [
+      {Phoenix.PubSub, name: Jinx.PubSub},
+      Jinx.DocRegistry,
+      Jinx.DocCache
+    ]
+
+    Supervisor.init(children, strategy: :one_for_all)
   end
 end
