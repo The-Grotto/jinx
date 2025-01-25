@@ -18,25 +18,24 @@ defmodule Jinx.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :observer, :wx, :runtime_tools]
+      mod: {Jinx.Application, []},
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.12.3"},
       {:excoveralls, "~> 0.10", only: :test},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
+      {:phoenix_live_view, "~> 1.0"},
       {:phoenix_pubsub, "~> 2.1"},
+      {:postgrex, ">= 0.19.1"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
-      {:styler, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:uxid, "~> 0.2.3"},
-      {:y_ex, "~> 0.6.2"}
+      {:styler, "~> 1.0", only: [:dev, :test], runtime: false}
     ]
   end
 end
