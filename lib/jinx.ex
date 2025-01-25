@@ -67,12 +67,6 @@ defmodule Jinx do
 
   # TODO: changesets
   defp traverse_assigns(struct, inserts, updates) when is_struct(struct) do
-    struct =
-      case lookup_info(struct) do
-        nil -> struct
-        lookup -> process_record(updates[lookup], struct)
-      end
-
     traverse_associations(struct, inserts, updates)
   end
 
@@ -130,8 +124,13 @@ defmodule Jinx do
     Enum.map(structs, fn struct -> traverse_associations(struct, inserts, updates) end)
   end
 
-  # TODO: need to update single records in assocs
   defp traverse_associations(%{__struct__: module} = struct, inserts, updates) do
+    struct =
+      case lookup_info(struct) do
+        nil -> struct
+        lookup -> process_record(updates[lookup], struct)
+      end
+
     if Kernel.function_exported?(module, :__schema__, 1) do
       :associations
       |> module.__schema__()
