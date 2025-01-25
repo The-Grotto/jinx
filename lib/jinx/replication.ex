@@ -170,7 +170,11 @@ defmodule Jinx.Replication do
       <<?R, oid::32, rest::binary>> ->
         handle_relation(oid, rest, state)
 
-      _ ->
+      <<?D, oid::32, ?K, count::16, tuple_data::binary>> when is_list(state.replication) ->
+        handle_tuple_data(:delete, oid, count, tuple_data, state)
+
+      msg ->
+        IO.inspect(msg, limit: :infinity)
         {:noreply, state}
     end
   end
@@ -222,14 +226,17 @@ defmodule Jinx.Replication do
     #   lsn: lsn,
     #   ops: Enum.reverse(state.replication)
     # })
+
     data =
       state.replication
       |> Enum.filter(fn data -> Map.has_key?(state.schemas, data.table) end)
-      |> Enum.map(fn %{data: data, table: table} ->
+      |> Enum.map(fn %{data: data, table: table, op: op} ->
         module = state.schemas[table]
 
         fields =
-          Map.new(module.__schema__(:fields), fn field ->
+          :fields
+          |> module.__schema__()
+          |> Map.new(fn field ->
             {to_string(field), module.__schema__(:type, field)}
           end)
 
@@ -248,10 +255,9 @@ defmodule Jinx.Replication do
 
             {field, value}
           end)
-          |> dbg()
 
         struct = Ecto.Schema.Loader.load_struct(module, nil, table)
-        Map.merge(struct, data)
+        {op, Map.merge(struct, data)}
       end)
 
     Phoenix.PubSub.broadcast(DevHub.PubSub, "jinx", {:jinx, data})
