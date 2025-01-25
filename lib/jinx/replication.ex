@@ -215,22 +215,7 @@ defmodule Jinx.Replication do
     {:noreply, update_in(state.replication, &[operation | &1])}
   end
 
-  defp handle_commit(lsn, state) do
-    # TODO: Encode this as binary data.
-    # TODO: Potentially allow synchronizing a subset of the fields.
-    # TODO: lsn can cause an overflow on the client, since JS integers are floats.
-    # TODO: Broadcast will encode to JSON when fastlaning,
-    #       this can be expensive if done directly in the replication process.
-    #       We can probably partition this over several processes.
-    # TODO: The broadcast should be per table and a commit can touch several
-    #       tables. We need an efficient mechanism to filter these down and
-    #       send to the client. Perhaps by using a custom Registry rather than
-    #       PubSub, since it is all local anyway.
-    # state.endpoint.local_broadcast("sync:todos:items", "commit", %{
-    #   lsn: lsn,
-    #   ops: Enum.reverse(state.replication)
-    # })
-
+  defp handle_commit(_lsn, state) do
     data =
       state.replication
       |> Enum.filter(fn data -> Map.has_key?(state.schemas, data.table) end)
