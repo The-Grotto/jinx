@@ -31,7 +31,7 @@ defmodule Jinx do
       |> Enum.reduce([], fn {_op, record}, acc ->
         case lookup_info(record) do
           nil -> acc
-          _lookup -> [record | acc]
+          lookup -> [{lookup, record} | acc]
         end
       end)
 
@@ -143,12 +143,17 @@ defmodule Jinx do
 
   defp maybe_insert(%Ecto.Association.NotLoaded{} = record, _parent, _assoc, _inserts), do: record
 
-  # TODO: make sure item isn't already in list
   defp maybe_insert(list, parent, %Ecto.Association.Has{cardinality: :many} = assoc, inserts) do
+    existing = Enum.map(list, &lookup_info/1)
+
     relevant_inserts =
       Enum.filter(
         inserts,
-        &(&1.__struct__ == assoc.related and Map.get(&1, assoc.related_key) == Map.get(parent, assoc.owner_key))
+        fn {lookup, insert} ->
+          insert.__struct__ == assoc.related and
+            Map.get(insert, assoc.related_key) == Map.get(parent, assoc.owner_key) and
+            lookup not in existing
+        end
       )
 
     relevant_inserts ++ list
