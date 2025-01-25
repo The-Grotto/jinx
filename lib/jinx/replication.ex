@@ -24,7 +24,7 @@ defmodule Jinx.Replication do
   Wait for connection.
 
   This is typically used by boot to make sure the replication
-  is running to avoid unecessary syncs. It accepts a maximum
+  is running to avoid unnecessary syncs. It accepts a maximum
   timeout.
 
   This function will exit if the server is not running.

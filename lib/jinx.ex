@@ -1,17 +1,17 @@
 defmodule Jinx do
   @moduledoc false
-  import Phoenix.Component
   import Phoenix.LiveView
 
   alias Ecto.Association.NotLoaded
 
-  def on_mount(:default, _params, _session, socket) do
+  def on_mount(opts, _params, _session, socket) do
     if connected?(socket) do
-      # TODO: customizable key
+      # TODO: customizable key to restrict for multitenancy
       Jinx.Replication.subscribe("jinx")
+      {:cont, attach_hook(socket, :jinx, :handle_info, fn msg, socket -> do_handle_info(msg, socket, opts) end)}
+    else
+      {:cont, socket}
     end
-
-    {:cont, attach_hook(socket, :jinx, :handle_info, &do_handle_info/2)}
   end
 
   def opts(module) do
@@ -25,7 +25,9 @@ defmodule Jinx do
     end
   end
 
-  defp do_handle_info({:jinx, records}, socket) do
+  defp do_handle_info({:jinx, records}, socket, opts) do
+    watch = Keyword.get(opts, :watch, [])
+
     inserts =
       records
       |> Enum.filter(&(elem(&1, 0) == :insert))
@@ -47,19 +49,22 @@ defmodule Jinx do
       end)
       |> Map.new()
 
-    assigns =
+    socket =
       socket.assigns
-      |> Map.drop([:flash, :live_action])
+      |> Map.take(watch)
       |> traverse_assigns(inserts, updates)
+      |> Enum.reduce(socket, fn {k, v}, socket_acc ->
+        # TODO: only call if assign has changed
+        socket_acc.view.jinx_update(k, v, socket_acc)
+      end)
 
-    {:halt, assign(socket, assigns)}
+    {:halt, socket}
   end
 
-  defp do_handle_info(_msg, socket) do
+  defp do_handle_info(_msg, socket, _opts) do
     {:cont, socket}
   end
 
-  # TODO: preloaded associations
   # TODO: changesets
   defp traverse_assigns(struct, inserts, updates) when is_struct(struct) do
     struct =
@@ -81,6 +86,7 @@ defmodule Jinx do
       end
     end)
     |> Enum.reverse()
+    |> maybe_insert(inserts)
   end
 
   defp traverse_assigns(map, inserts, updates) when is_map(map) do
@@ -120,6 +126,11 @@ defmodule Jinx do
     struct
   end
 
+  defp traverse_associations(structs, inserts, updates) when is_list(structs) do
+    Enum.map(structs, fn struct -> traverse_associations(struct, inserts, updates) end)
+  end
+
+  # TODO: need to update single records in assocs
   defp traverse_associations(%{__struct__: module} = struct, inserts, updates) do
     if Kernel.function_exported?(module, :__schema__, 1) do
       :associations
@@ -129,8 +140,8 @@ defmodule Jinx do
         record =
           struct
           |> Map.get(assoc.field)
-          |> traverse_assigns(inserts, updates)
-          |> maybe_insert(struct, assoc, inserts)
+          |> traverse_associations(inserts, updates)
+          |> maybe_add_to_association(struct, assoc, inserts)
 
         %{acc | assoc.field => record}
       end)
@@ -143,23 +154,40 @@ defmodule Jinx do
     value
   end
 
-  defp maybe_insert(%Ecto.Association.NotLoaded{} = record, _parent, _assoc, _inserts), do: record
+  defp maybe_add_to_association(%Ecto.Association.NotLoaded{} = record, _parent, _assoc, _inserts), do: record
 
-  defp maybe_insert(list, parent, %Ecto.Association.Has{cardinality: :many} = assoc, inserts) do
+  defp maybe_add_to_association(list, parent, %Ecto.Association.Has{cardinality: :many} = assoc, inserts) do
     existing = Enum.map(list, &lookup_info/1)
 
     relevant_inserts =
-      Enum.filter(
-        inserts,
-        fn {lookup, insert} ->
-          insert.__struct__ == assoc.related and
-            Map.get(insert, assoc.related_key) == Map.get(parent, assoc.owner_key) and
-            lookup not in existing
-        end
-      )
+      inserts
+      |> Enum.filter(fn {lookup, insert} ->
+        insert.__struct__ == assoc.related and
+          Map.get(insert, assoc.related_key) == Map.get(parent, assoc.owner_key) and
+          lookup not in existing
+      end)
+      |> Enum.map(&elem(&1, 1))
 
     relevant_inserts ++ list
   end
 
-  defp maybe_insert(record, _parent, _assoc, _inserts), do: record
+  defp maybe_add_to_association(record, _parent, _assoc, _inserts), do: record
+
+  # TODO: what if list is empty? how to populate first record
+  defp maybe_insert([head | _rest] = list, inserts) do
+    existing = Enum.map(list, &lookup_info/1)
+
+    relevant_inserts =
+      inserts
+      |> Enum.filter(fn {lookup, insert} ->
+        insert.__struct__ == head.__struct__ and lookup not in existing
+      end)
+      |> Enum.map(&elem(&1, 1))
+
+    relevant_inserts ++ list
+  end
+
+  defp maybe_insert(list, _inserts) do
+    list
+  end
 end
