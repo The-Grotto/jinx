@@ -66,20 +66,17 @@ defmodule Jinx.Socket do
     value
   end
 
-  # TODO: how to handle inserts, for example in lists
   defp process_record({:update, record}, original) do
     updated_fields =
       record
       |> Map.from_struct()
       |> Enum.filter(fn
-        {_field, %NotLoaded{}} ->
-          false
-
-        _ ->
-          true
+        {_field, %NotLoaded{}} -> false
+        _ -> true
       end)
       |> Map.new()
 
+    # TODO: handle fkey ids changing, maybe set to NotLoaded
     Map.merge(original, updated_fields)
   end
 
@@ -148,7 +145,6 @@ defmodule Jinx.Socket do
   defp maybe_add_to_association(record, _parent, _assoc, _inserts), do: record
 
   # TODO: what if list is empty? how to populate first record
-  # TODO: maybe insert if list is records of syncable structs
   defp maybe_insert([head | _rest] = list, inserts) do
     existing = Enum.map(list, &Jinx.lookup_info/1)
 

@@ -64,7 +64,15 @@ defmodule Jinx.Replication do
       |> Protocol.extract_impls([path])
       |> Map.new(fn schema ->
         opts = Jinx.opts(schema)
-        {opts[:table] || schema.__schema__(:source), schema}
+
+        fields =
+          :fields
+          |> schema.__schema__()
+          |> Map.new(fn field ->
+            {to_string(field), schema.__schema__(:type, field)}
+          end)
+
+        {opts[:table] || schema.__schema__(:source), %{module: schema, fields: fields}}
       end)
 
     state = %{
@@ -126,14 +134,6 @@ defmodule Jinx.Replication do
     for ref <- waiting do
       send(ref, :ok)
     end
-
-    # {:registered_name, name} = Process.info(self(), :registered_name)
-
-    # Registry.dispatch(Jinx.Registry, name, fn data ->
-    #   Enum.each(data, fn {pid, _} ->
-    #     send(pid, {__MODULE__, %{message: :connect}})
-    #   end)
-    # end)
 
     query =
       "START_REPLICATION SLOT #{slot} LOGICAL 0/0 (proto_version '2', publication_names 'jinx_sync')"
@@ -220,14 +220,7 @@ defmodule Jinx.Replication do
       state.replication
       |> Enum.filter(fn data -> Map.has_key?(state.schemas, data.table) end)
       |> Enum.map(fn %{data: data, table: table, op: op} ->
-        module = state.schemas[table]
-
-        fields =
-          :fields
-          |> module.__schema__()
-          |> Map.new(fn field ->
-            {to_string(field), module.__schema__(:type, field)}
-          end)
+        %{module: module, fields: fields} = state.schemas[table]
 
         data =
           data
