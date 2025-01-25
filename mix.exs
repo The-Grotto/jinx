@@ -4,10 +4,11 @@ defmodule Jinx.MixProject do
   def project do
     [
       app: :jinx,
-      version: "0.1.0",
+      version: "0.1.0-beta.1",
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      package: package(),
       test_paths: ["lib"],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
@@ -25,10 +26,20 @@ defmodule Jinx.MixProject do
     ]
   end
 
+  defp package do
+    [
+      description: "LiveView Sync Engine",
+      files: ~w(lib .formatter.exs mix.exs README.md),
+      links: %{"GitHub" => "https://github.com/The-Grotto/jinx"},
+      licenses: ["Apache-2.0"]
+    ]
+  end
+
   defp deps do
     [
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ecto, "~> 3.12.3"},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
       {:phoenix_live_view, "~> 1.0"},
