@@ -6,7 +6,7 @@ defmodule Jinx.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {Phoenix.PubSub, name: Jinx.PubSub},
+      {Registry, name: Jinx.Registry, keys: :duplicate},
       # TODO: pass in repo config
       {Jinx.Replication, [name: Jinx.Replication] ++ DevHub.Repo.config()},
       {Task, fn -> Jinx.Replication.wait_for_connection!(Jinx.Replication) end}

@@ -7,7 +7,8 @@ defmodule Jinx do
 
   def on_mount(:default, _params, _session, socket) do
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(DevHub.PubSub, "jinx")
+      # TODO: customizable key
+      Jinx.Replication.subscribe("jinx")
     end
 
     {:cont, attach_hook(socket, :jinx, :handle_info, &do_handle_info/2)}
@@ -70,6 +71,7 @@ defmodule Jinx do
     traverse_associations(struct, inserts, updates)
   end
 
+  # TODO: maybe insert if list is records of syncable structs
   defp traverse_assigns(list, inserts, updates) when is_list(list) do
     list
     |> Enum.reduce([], fn item, acc ->

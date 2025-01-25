@@ -16,6 +16,10 @@ defmodule Jinx.Replication do
     Postgrex.ReplicationConnection.start_link(__MODULE__, [], opts)
   end
 
+  def subscribe(name) do
+    Registry.register(Jinx.Registry, name, [])
+  end
+
   @doc """
   Wait for connection.
 
@@ -260,7 +264,9 @@ defmodule Jinx.Replication do
         {op, Map.merge(struct, data)}
       end)
 
-    Phoenix.PubSub.broadcast(DevHub.PubSub, "jinx", {:jinx, data})
+    Registry.dispatch(Jinx.Registry, "jinx", fn subscribed ->
+      for {pid, _opts} <- subscribed, do: send(pid, {:jinx, data})
+    end)
 
     {:noreply, %{state | replication: :connected}}
   end

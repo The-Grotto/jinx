@@ -43,7 +43,6 @@ defmodule Jinx.MixProject do
       {:excoveralls, "~> 0.10", only: :test},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
       {:phoenix_live_view, "~> 1.0"},
-      {:phoenix_pubsub, "~> 2.1"},
       {:postgrex, ">= 0.19.1"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.0", only: [:dev, :test], runtime: false}
