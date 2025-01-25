@@ -37,13 +37,14 @@ defmodule Jinx.MixProject do
 
   defp deps do
     [
+      {:ecto, "~> 3.12"},
+      {:phoenix_live_view, "~> 1.0"},
+      {:postgrex, "~> 0.19"},
+      # dev/test deps
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ecto, "~> 3.12.3"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
-      {:phoenix_live_view, "~> 1.0"},
-      {:postgrex, ">= 0.19.1"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.0", only: [:dev, :test], runtime: false}
     ]
