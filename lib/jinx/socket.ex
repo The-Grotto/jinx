@@ -2,7 +2,13 @@ defmodule Jinx.Socket do
   alias Ecto.Association.NotLoaded
 
   def handle_info({:jinx, records}, socket, opts) do
-    watch = Keyword.get(opts, :watch, [])
+    watch =
+      opts
+      |> Keyword.get(:watch, [])
+      |> Enum.map(fn
+        {key, _value} -> key
+        key -> key
+      end)
 
     inserts =
       records
@@ -11,6 +17,20 @@ defmodule Jinx.Socket do
         case Jinx.lookup_info(record) do
           nil -> acc
           lookup -> [{lookup, record} | acc]
+        end
+      end)
+
+    # handle inserts for any assigns that might be empty
+    socket =
+      socket.assigns
+      |> Map.take(watch)
+      |> Enum.reduce(socket, fn {key, old_value}, socket_acc ->
+        new_value = maybe_populate_assigns(old_value, opts[:watch][key][:schema], inserts)
+
+        if old_value == new_value do
+          socket_acc
+        else
+          socket_acc.view.jinx_update(key, new_value, socket_acc)
         end
       end)
 
@@ -29,9 +49,12 @@ defmodule Jinx.Socket do
       socket.assigns
       |> Map.take(watch)
       |> traverse_assigns(inserts, updates)
-      |> Enum.reduce(socket, fn {k, v}, socket_acc ->
-        # TODO: only call if assign has changed
-        socket_acc.view.jinx_update(k, v, socket_acc)
+      |> Enum.reduce(socket, fn {key, value}, socket_acc ->
+        if socket_acc.assigns[key] == value do
+          socket_acc
+        else
+          socket_acc.view.jinx_update(key, value, socket_acc)
+        end
       end)
 
     {:halt, socket}
@@ -144,7 +167,6 @@ defmodule Jinx.Socket do
 
   defp maybe_add_to_association(record, _parent, _assoc, _inserts), do: record
 
-  # TODO: what if list is empty? how to populate first record
   defp maybe_insert([head | _rest] = list, inserts) do
     existing = Enum.map(list, &Jinx.lookup_info/1)
 
@@ -160,5 +182,15 @@ defmodule Jinx.Socket do
 
   defp maybe_insert(list, _inserts) do
     list
+  end
+
+  defp maybe_populate_assigns([], schema, inserts) do
+    inserts
+    |> Enum.filter(fn {_lookup, insert} -> insert.__struct__ == schema end)
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp maybe_populate_assigns(value, _schema, _inserts) do
+    value
   end
 end
